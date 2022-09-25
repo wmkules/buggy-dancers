@@ -17,8 +17,17 @@ func main() {
 	}
 	defer db.Close()
 
-	populateDB(db)
+	// populateDB(db)
+	// populateDB(db)
 	dbPrintBallots(db)
+
+	dbPrintById(db, 39988)
+
+	v := vote{BallotID: "39988", PromptID: "2"}
+
+	if _, err := dbVote(db, v); err != nil {
+		fmt.Printf("%v", err)
+	}
 
 	router := gin.Default()
 	router.GET("/ballots", getAllBallots)

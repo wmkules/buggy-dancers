@@ -31,15 +31,11 @@ func addVote(c *gin.Context) {
 		return
 	}
 
-	for _, bal := range ballots {
-		if bal.ID == newVote.BallotID {
-			for _, pro := range bal.Prompts {
-				if pro.ID == newVote.PromptID {
-					pro.Votes = pro.Votes + 1
-					c.IndentedJSON(http.StatusCreated, pro)
-					return
-				}
-			}
-		}
+	bal, err := dbVote(db, newVote)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, "Could not vote")
+		return
 	}
+	c.IndentedJSON(http.StatusOK, bal)
+	// c.IndentedJSON(http.StatusOK, bal)
 }
