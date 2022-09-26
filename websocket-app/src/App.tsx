@@ -1,23 +1,21 @@
-import React from 'react';
- 
-<ReactPolling
-  url={'http://139.144.18.143:8080/ballots'}
-  interval= {3000} // in milliseconds(ms)
-  retryCount={3} // this is optional
-  onSuccess={() => console.log('handle success')}
-  onFailure={() => console.log('handle failure')} // this is optional
-  method={'GET'}
-  headers={headers object} // this is optional
-  body={JSON.stringify(data)} // data to send in a post call. Should be stringified always
-  render={({ startPolling, stopPolling, isPolling }) => {
-    if(isPolling) {
-      return (
-        <div> Hello I am polling</div>
-      );
-    } else {
-      return (
-        <div> Hello I stopped polling</div>
-      );
-    }
-  }}
-/>
+import React, { useEffect, useState } from "react";
+
+export default function App() {
+  const [answer, setAnswer] = useState();
+
+  const getAnswer = async () => {
+    const res = await fetch("http://139.144.18.143:8080/ballots");
+    const data = await res.json();
+    setAnswer(data);
+  };
+
+  useEffect(() => {
+    const timer = setInterval(getAnswer, 2000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return <div>{JSON.stringify(answer)}</div>;
+}
+
+
+
