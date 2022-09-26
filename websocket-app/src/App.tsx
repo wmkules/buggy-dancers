@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import './App.css';
 
-const socket = new WebSocket("ws://127.0.0.1:8080/ws");
+const socket = new WebSocket("ws://139.144.18.143:8080/vs");
 
 function App() {
   const [message, setMessage] = useState('')
