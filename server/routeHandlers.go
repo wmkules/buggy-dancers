@@ -40,12 +40,10 @@ func wshandler(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		t, msg, err := conn.ReadMessage()
-		fmt.Println(t)
 		if err != nil {
 			break
 		}
 		conn.WriteMessage(t, msg)
-		fmt.Println(msg)
 	}
 }
 
