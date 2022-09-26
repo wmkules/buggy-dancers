@@ -23,7 +23,7 @@ func main() {
 
 	dbPrintById(db, 39988)
 
-	v := vote{BallotID: "39988", PromptID: "2"}
+	v := vote{BallotID: "76296", PromptID: "2"}
 
 	if _, err := dbVote(db, v); err != nil {
 		fmt.Printf("%v", err)
