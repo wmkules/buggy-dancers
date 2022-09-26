@@ -1,20 +1,30 @@
+import axios from "axios";
 import React, { useEffect, useState } from "react";
+import BallotComponent from "./components/BallotComponent";
+import BallotInterface from "./interfaces/ballotInterface"
 
 export default function App() {
-  const [answer, setAnswer] = useState();
+  const defaultBallots: BallotInterface[] = [];
 
-  const getAnswer = async () => {
-    const res = await fetch("http://139.144.18.143:8080/ballots");
-    const data = await res.json();
-    setAnswer(data);
-  };
+  const [allBallots, setAllBallots]: [BallotInterface[], (ballots: BallotInterface[]) => void] = React.useState(defaultBallots);
 
-  useEffect(() => {
-    const timer = setInterval(getAnswer, 2000);
-    return () => clearInterval(timer);
-  }, []);
+  React.useEffect(() => {
+    axios
+      .get<BallotInterface[]>("http://localhost:8080/ballots")
+      .then(response => {
+        setAllBallots(response.data);
+      })
+      .catch(ex => {
+        const error =
+          ex.response.status === 404
+            ? "Resource Not found"
+            : "An unexpected error has occurred";
+      });
+  }, [])
 
-  return <div>{JSON.stringify(answer)}</div>;
+  return <div>
+    {allBallots.map((b) => <BallotComponent id={b.id} description={b.description} prompts={b.prompts} />)}
+  </div>;
 }
 
 
