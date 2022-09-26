@@ -22,7 +22,14 @@ func getAllBallots(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, ballots)
 }
 
-var upgrader = websocket.Upgrader{}
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:   1024 ,
+	WriteBufferSize: 1024 ,
+	 // Resolve cross-domain problems 
+	CheckOrigin: func(r *http.Request) bool {
+		 return  true
+	},
+}
 
 func wshandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
