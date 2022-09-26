@@ -1,7 +1,7 @@
 import React from 'react';
  
 <ReactPolling
-  url={'url to poll'}
+  url={'http://139.144.18.143:8080/ballots'}
   interval= {3000} // in milliseconds(ms)
   retryCount={3} // this is optional
   onSuccess={() => console.log('handle success')}
