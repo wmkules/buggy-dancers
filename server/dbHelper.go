@@ -13,6 +13,9 @@ import (
 
 var db *bolt.DB
 
+// TODO: remove temp
+var tempCurrBal string
+
 func setupDB() (*bolt.DB, error) {
 	var err error
 	db, err = bolt.Open("database/test.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
@@ -44,11 +47,43 @@ func setupDB() (*bolt.DB, error) {
 	return db, nil
 }
 
+func dbSetCurrrentBallotByBallot(db *bolt.DB, bal ballot) error {
+	err := db.Update(func(tx *bolt.Tx) error {
+		err := tx.Bucket([]byte("DB")).Put([]byte("CURRENT_BALLOT"), []byte(bal.ID))
+		if err != nil {
+			return fmt.Errorf("could not set current ballot: %v", err)
+		}
+		return nil
+	})
+
+	fmt.Println("Set current ballot to ", bal.ID)
+	return err
+}
+
+func dbSetCurrrentBallotByID(db *bolt.DB, id string) error {
+	err := db.Update(func(tx *bolt.Tx) error {
+		err := tx.Bucket([]byte("DB")).Put([]byte("CURRENT_BALLOT"), []byte(id))
+		if err != nil {
+			return fmt.Errorf("could not set current ballot: %v", err)
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Set current ballot to ", id)
+	return nil
+}
+
 func dbAddBallot(db *bolt.DB, bal ballot) error {
 	rand.Seed(time.Now().UnixNano())
 	id := rand.Intn(99999)
 	fmt.Println("Adding ballot with id: ", id)
 
+	// while populating set some random ballot as the current ballot
+	tempCurrBal = strconv.Itoa(id)
+	bal.ID = strconv.Itoa(id)
 	return dbUpdateBallot(db, bal, []byte(strconv.Itoa(id)))
 }
 
@@ -68,6 +103,43 @@ func dbUpdateBallot(db *bolt.DB, bal ballot, id []byte) error {
 	return err
 }
 
+func dbGetBallotByID(db *bolt.DB, id string) (ballot, error) {
+	var bal ballot
+	err := db.View(func(tx *bolt.Tx) error {
+		balBytes := tx.Bucket([]byte("DB")).Bucket([]byte("BALLOT")).Get([]byte([]byte(id)))
+		if err := json.Unmarshal(balBytes, &bal); err != nil {
+			return fmt.Errorf("could not fetch ballot from db: %v", err)
+		}
+		return nil
+	})
+	if err != nil {
+		return bal, fmt.Errorf("could not print ballots: %v", err)
+	}
+	return bal, nil
+}
+
+func dbGetCurrentBallot(db *bolt.DB) (ballot, error) {
+	var bal ballot
+	var id []byte
+	err := db.View(func(tx *bolt.Tx) error {
+		id = tx.Bucket([]byte("DB")).Get([]byte([]byte("CURRENT_BALLOT")))
+		if id == nil {
+			id = []byte(strconv.Itoa(16714))
+		}
+		fmt.Println("Got current id: ", id)
+
+		balBytes := tx.Bucket([]byte("DB")).Bucket([]byte("BALLOT")).Get([]byte([]byte(id)))
+		if err := json.Unmarshal(balBytes, &bal); err != nil {
+			return fmt.Errorf("could not convert returned ballot to type ballot: %v\n%v", err, bal)
+		}
+		return nil
+	})
+	if err != nil {
+		return bal, fmt.Errorf("could not fetch current ballot from db: %v", err)
+	}
+	return bal, nil
+}
+
 func dbPrintBallots(db *bolt.DB) error {
 	fmt.Println("Printing db now")
 	err := db.View(func(tx *bolt.Tx) error {
@@ -85,10 +157,32 @@ func dbPrintBallots(db *bolt.DB) error {
 	return nil
 }
 
+func dbGetAllBallots(db *bolt.DB) ([]ballot, error) {
+	allBallots := []ballot{}
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("DB")).Bucket([]byte("BALLOT"))
+		b.ForEach(func(k, v []byte) error {
+			var bal ballot
+			if err := json.Unmarshal(v, &bal); err != nil {
+				return fmt.Errorf("could not fetch ballot from db: %v", err)
+			}
+			allBallots = append(allBallots, bal)
+			return nil
+		})
+		return nil
+	})
+	if err != nil {
+		return allBallots, fmt.Errorf("could not print ballots: %v", err)
+	}
+	return allBallots, nil
+}
+
 func populateDB(db *bolt.DB) {
 	for _, bal := range ballots {
 		dbAddBallot(db, bal)
 	}
+	dbSetCurrrentBallotByID(db, tempCurrBal)
+	fmt.Println("Set current ballot to id: ", []byte(tempCurrBal))
 }
 
 func dbVote(db *bolt.DB, v vote) (ballot, error) {

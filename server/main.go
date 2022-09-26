@@ -27,6 +27,15 @@ func main() {
 	// populateDB(db)
 	// dbPrintBallots(db)
 
+	// var tempbal ballot
+
+	// if tempbal, err = dbGetCurrentBallot(db); err != nil {
+	// 	fmt.Printf("%v", err)
+	// }
+
+	// fmt.Println("Pringint ballot")
+	// fmt.Println(tempbal)
+
 	// dbPrintById(db, 39988)
 
 	// v := vote{BallotID: "76296", PromptID: "2"}
@@ -37,10 +46,12 @@ func main() {
 
 	router := gin.Default()
 	router.Use(CORSMiddleware())
-	router.GET("/ballots", getAllBallots)
-	router.GET("/ballots/:id", getBallotByID)
+	router.GET("/mysecretkey/ballots", getAllBallots)
+	router.GET("/mysecretkey/ballots/setCurrent/:id", setCurrentBallot)
+	// router.POST("/mysecretkey/setCurrentBallot", setCurrentBallot)
+	// router.GET("/ballots/:id", getBallotByID)
+	router.GET("/ballots/current", getCurrentBallot)
 	router.POST("/vote", addVote)
-	router.GET("/vs", voteSocket)
 	router.Run(":8080")
 }
 

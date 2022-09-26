@@ -3,31 +3,60 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"reflect"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
 
-func getBallotByID(c *gin.Context) {
+// func getBallotByID(c *gin.Context) {
+// 	id := c.Param("id")
+// 	for _, a := range ballots {
+// 		if a.ID == id {
+// 			c.IndentedJSON(http.StatusOK, a)
+// 			return
+// 		}
+// 	}
+// }
+
+func setCurrentBallot(c *gin.Context) {
 	id := c.Param("id")
-	for _, a := range ballots {
-		if a.ID == id {
-			c.IndentedJSON(http.StatusOK, a)
-			return
-		}
+	fmt.Println("type of id is: ", reflect.TypeOf(id))
+
+	if err := dbSetCurrrentBallotByID(db, id); err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, err)
+		return
 	}
+	c.IndentedJSON(http.StatusOK, "")
+}
+
+func getCurrentBallot(c *gin.Context) {
+	fmt.Println("Dancers - getting ballot")
+	bal, err := dbGetCurrentBallot(db)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, nil)
+		fmt.Println(err)
+		return
+	}
+	c.IndentedJSON(http.StatusOK, bal)
+	fmt.Println("Dancers - Returned ballot: ", bal)
 }
 
 func getAllBallots(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, ballots)
+	allBallots, err := dbGetAllBallots(db)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, nil)
+		return
+	}
+	c.IndentedJSON(http.StatusOK, allBallots)
 }
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:   1024 ,
-	WriteBufferSize: 1024 ,
-	 // Resolve cross-domain problems 
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	// Resolve cross-domain problems
 	CheckOrigin: func(r *http.Request) bool {
-		 return  true
+		return true
 	},
 }
 
