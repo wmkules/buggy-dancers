@@ -1,29 +1,28 @@
 import * as React from "react";
 import axios from "axios";
 
+import { addVotedIDToStorage, isVotedIdInStorage } from "../interfaces/votedCookieInterface";
 import BallotInterface from "../interfaces/ballotInterface";
 import VoteInterface from "../interfaces/voteInterface";
 import promptInterface from "../interfaces/promptInterface";
-
 import { BallotContext } from "../context/BallotContext";
 
 
 export default function BallotComponent() {
   const { currentBallot, setCurrentBallot } = React.useContext(BallotContext);
 
-  const DoVote = (p: promptInterface, b: BallotInterface) => {
-    const vote: VoteInterface = { ballotID: b.id, promptID: p.id }
-      axios
-        .post<BallotInterface>('http://localhost:8080/vote', vote)
-        .then((response) => {
-          setCurrentBallot(response.data)
-        })
-        .catch(ex => {
-          const error = "An unexpected error has occurred. Could not vote";
-        });
+  const DoVote = (p: promptInterface) => {
+    const vote: VoteInterface = { ballotID: currentBallot.id, promptID: p.id }
+    axios
+      .post<BallotInterface>('http://localhost:8080/vote', vote)
+      .then((response) => {
+        setCurrentBallot(response.data)
+      })
+      .catch(ex => {
+        const error = "An unexpected error has occurred. Could not vote";
+      });
+    addVotedIDToStorage(currentBallot.id)
   };
-
-
 
   return (
     <div>
@@ -31,12 +30,16 @@ export default function BallotComponent() {
       <h2>Ballot is: {currentBallot.description}</h2>
       <h3>Prompts are:</h3>
       <ul>
+        {console.log("re rendering ballot")}
         {currentBallot.prompts.map((p) =>
           <li key={p.id}>
             <p>name: {p.name}</p>
             <p>description: {p.description}</p>
             <p>votes: {p.votes}</p>
-            <button onClick={() => DoVote(p, currentBallot)}>Vote</button>
+            {
+              !isVotedIdInStorage(currentBallot.id) &&
+              <button onClick={() => DoVote(p)}>Vote</button>
+            }
           </li>
         )}
       </ul>
