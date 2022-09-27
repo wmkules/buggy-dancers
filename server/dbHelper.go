@@ -13,7 +13,7 @@ import (
 
 var db *bolt.DB
 
-// TODO: remove temp
+// TODO: set this to the actual default ballot
 var tempCurrBal string
 
 func setupDB() (*bolt.DB, error) {
@@ -47,7 +47,7 @@ func setupDB() (*bolt.DB, error) {
 	return db, nil
 }
 
-func dbSetCurrrentBallotByBallot(db *bolt.DB, bal ballot) error {
+func dbSetCurrrentBallotByBallot(db *bolt.DB, bal ballotStruct) error {
 	err := db.Update(func(tx *bolt.Tx) error {
 		err := tx.Bucket([]byte("DB")).Put([]byte("CURRENT_BALLOT"), []byte(bal.ID))
 		if err != nil {
@@ -76,7 +76,7 @@ func dbSetCurrrentBallotByID(db *bolt.DB, id string) error {
 	return nil
 }
 
-func dbAddBallot(db *bolt.DB, bal ballot) error {
+func dbAddBallot(db *bolt.DB, bal ballotStruct) error {
 	rand.Seed(time.Now().UnixNano())
 	id := rand.Intn(99999)
 	fmt.Println("Adding ballot with id: ", id)
@@ -87,7 +87,7 @@ func dbAddBallot(db *bolt.DB, bal ballot) error {
 	return dbUpdateBallot(db, bal, []byte(strconv.Itoa(id)))
 }
 
-func dbUpdateBallot(db *bolt.DB, bal ballot, id []byte) error {
+func dbUpdateBallot(db *bolt.DB, bal ballotStruct, id []byte) error {
 	balBytes, err := json.Marshal(bal)
 	if err != nil {
 		return fmt.Errorf("could not marshal ballot json: %v", err)
@@ -103,8 +103,8 @@ func dbUpdateBallot(db *bolt.DB, bal ballot, id []byte) error {
 	return err
 }
 
-func dbGetBallotByID(db *bolt.DB, id string) (ballot, error) {
-	var bal ballot
+func dbGetBallotByID(db *bolt.DB, id string) (ballotStruct, error) {
+	var bal ballotStruct
 	err := db.View(func(tx *bolt.Tx) error {
 		balBytes := tx.Bucket([]byte("DB")).Bucket([]byte("BALLOT")).Get([]byte([]byte(id)))
 		if err := json.Unmarshal(balBytes, &bal); err != nil {
@@ -118,8 +118,8 @@ func dbGetBallotByID(db *bolt.DB, id string) (ballot, error) {
 	return bal, nil
 }
 
-func dbGetCurrentBallot(db *bolt.DB) (ballot, error) {
-	var bal ballot
+func dbGetCurrentBallot(db *bolt.DB) (ballotStruct, error) {
+	var bal ballotStruct
 	var id []byte
 	err := db.View(func(tx *bolt.Tx) error {
 		id = tx.Bucket([]byte("DB")).Get([]byte([]byte("CURRENT_BALLOT")))
@@ -157,12 +157,12 @@ func dbPrintBallots(db *bolt.DB) error {
 	return nil
 }
 
-func dbGetAllBallots(db *bolt.DB) ([]ballot, error) {
-	allBallots := []ballot{}
+func dbGetAllBallots(db *bolt.DB) ([]ballotStruct, error) {
+	allBallots := []ballotStruct{}
 	err := db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("DB")).Bucket([]byte("BALLOT"))
 		b.ForEach(func(k, v []byte) error {
-			var bal ballot
+			var bal ballotStruct
 			if err := json.Unmarshal(v, &bal); err != nil {
 				return fmt.Errorf("could not fetch ballot from db: %v", err)
 			}
@@ -185,8 +185,8 @@ func populateDB(db *bolt.DB) {
 	fmt.Println("Set current ballot to id: ", []byte(tempCurrBal))
 }
 
-func dbVote(db *bolt.DB, v vote) (ballot, error) {
-	var bal ballot
+func dbVote(db *bolt.DB, v voteStruct) (ballotStruct, error) {
+	var bal ballotStruct
 	err := db.View(func(tx *bolt.Tx) error {
 		balBytes := tx.Bucket([]byte("DB")).Bucket([]byte("BALLOT")).Get([]byte([]byte(v.BallotID)))
 
@@ -194,7 +194,7 @@ func dbVote(db *bolt.DB, v vote) (ballot, error) {
 			return fmt.Errorf("could not fetch ballot from db: %v", err)
 		}
 
-		newPrompts := []prompt{}
+		newPrompts := []promptStruct{}
 
 		for _, p := range bal.Prompts {
 			if p.ID == v.PromptID {

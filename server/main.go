@@ -47,9 +47,8 @@ func main() {
 	router := gin.Default()
 	router.Use(CORSMiddleware())
 	router.GET("/mysecretkey/ballots", getAllBallots)
+	// TODO: Change this to post
 	router.GET("/mysecretkey/ballots/setCurrent/:id", setCurrentBallot)
-	// router.POST("/mysecretkey/setCurrentBallot", setCurrentBallot)
-	// router.GET("/ballots/:id", getBallotByID)
 	router.GET("/ballots/current", getCurrentBallot)
 	router.POST("/vote", addVote)
 	router.Run(":8080")

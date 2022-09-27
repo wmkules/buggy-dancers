@@ -1,4 +1,4 @@
 export default interface VoteInterface {
-    ballotID: string;
-    promptID: string;
+  ballotID: string;
+  promptID: string;
 }

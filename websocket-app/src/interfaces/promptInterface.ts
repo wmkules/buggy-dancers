@@ -1,6 +1,6 @@
 export default interface promptInterface {
-    id: string;
-    name: string;
-    description: string;
-    votes: number;
+  id: string;
+  name: string;
+  description: string;
+  votes: number;
 }
