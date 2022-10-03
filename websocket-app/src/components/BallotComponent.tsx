@@ -41,9 +41,9 @@ export default function BallotComponent() {
             <p>votes: {p.votes}</p>
             {
               // only render the button if the ballot id is not in the list of already voted ids
-              !isVotedIdInStorage(currentBallot.id) && (
+              //!isVotedIdInStorage(currentBallot.id) && (
                 <button onClick={() => DoVote(p)}>Vote</button>
-              )
+              //)
             }
           </li>
         ))}
