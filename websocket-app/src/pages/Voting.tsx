@@ -6,7 +6,7 @@ import { BallotContext } from "../context/BallotContext";
 import BallotInterface from "../interfaces/ballotInterface";
 
 export const client = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: "http://139.144.18.143:8080",
 });
 
 export default function Voting() {
@@ -62,7 +62,7 @@ export default function Voting() {
     getCurrentBallot();
 
     // run timer at regular intervals to get new current ballot
-    const timer = setInterval(() => getCurrentBallot(), 2000);
+    const timer = setInterval(() => getCurrentBallot(), 100);
     return () => clearInterval(timer);
   }, []);
 

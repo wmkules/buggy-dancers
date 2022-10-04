@@ -1,6 +1,5 @@
 import * as React from "react";
 import axios from "axios";
-import Button from 'react-bootstrap/Button';
 import "../App.scss";
 
 import {
@@ -20,7 +19,7 @@ export default function BallotComponent() {
   const DoVote = (p: promptInterface) => {
     const vote: VoteInterface = { ballotID: currentBallot.id, promptID: p.id };
     axios
-    .post<BallotInterface>("http://localhost:8080/vote", vote)
+    .post<BallotInterface>("http://139.144.18.143:8080/vote", vote)
     .then((response) => {
       setCurrentBallot(response.data);
     })
