@@ -24,6 +24,7 @@ func main() {
 	defer db.Close()
 
 	// populateDB(db)
+	// dbClearVotes(db)
 	// populateDB(db)
 	// dbPrintBallots(db)
 
@@ -50,6 +51,9 @@ func main() {
 	// TODO: Change this to post
 	router.GET("/mysecretkey/ballots/setCurrent/:id", setCurrentBallot)
 	router.GET("/ballots/current", getCurrentBallot)
+	router.GET("/mysecretkey/resetdb", getClearVotes)
+	router.GET("/mysecretkey/populatedb", getPopulateDB)
+	router.GET("/mysecretkey/export", getExportDB)
 	router.POST("/vote", addVote)
 	router.Run(":8080")
 }

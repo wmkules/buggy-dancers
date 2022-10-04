@@ -53,6 +53,21 @@ func getAllBallots(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, allBallots)
 }
 
+func getClearVotes(c *gin.Context) {
+	dbClearVotes(db)
+	c.IndentedJSON(http.StatusOK, "")
+}
+
+func getPopulateDB(c *gin.Context) {
+	populateDB(db)
+	c.IndentedJSON(http.StatusOK, "")
+}
+
+func getExportDB(c *gin.Context) {
+	dbExportDB(db)
+	c.IndentedJSON(http.StatusOK, "")
+}
+
 // TODO: are we using this? Delete if no
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,

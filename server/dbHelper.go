@@ -7,11 +7,16 @@ import (
 	"reflect"
 	"strconv"
 	"time"
+	"log"
+	"os"
+	"io/ioutil"
 
 	bolt "go.etcd.io/bbolt"
 )
 
 var db *bolt.DB
+
+var dbId = 1000;
 
 // TODO: set this to the actual default ballot
 var tempCurrBal string
@@ -78,7 +83,8 @@ func dbSetCurrrentBallotByID(db *bolt.DB, id string) error {
 
 func dbAddBallot(db *bolt.DB, bal ballotStruct) error {
 	rand.Seed(time.Now().UnixNano())
-	id := rand.Intn(99999)
+	var id = dbId;
+	dbId += 1;
 	fmt.Println("Adding ballot with id: ", id)
 
 	// while populating set some random ballot as the current ballot
@@ -183,6 +189,37 @@ func populateDB(db *bolt.DB) {
 	}
 	dbSetCurrrentBallotByID(db, tempCurrBal)
 	fmt.Println("Set current ballot to id: ", []byte(tempCurrBal))
+}
+
+func dbClearVotes(db *bolt.DB) {
+	db.Close()
+	e := os.Remove("./database/test.db")
+    if e != nil {
+        log.Fatal(e)
+    }
+	setupDB()
+	dbId = 1000;
+}
+
+func dbExportDB(db *bolt.DB) {
+	allBallots := []ballotStruct{}
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("DB")).Bucket([]byte("BALLOT"))
+		b.ForEach(func(k, v []byte) error {
+			var bal ballotStruct
+			if err := json.Unmarshal(v, &bal); err != nil {
+				return fmt.Errorf("could not fetch ballot from db: %v", err)
+			}
+			allBallots = append(allBallots, bal)
+			return nil
+		})
+		file, _ := json.MarshalIndent(allBallots, "", " ") 
+		_ = ioutil.WriteFile(strconv.Itoa(rand.Int())+".json", file, 0644)
+		return nil
+	})
+	if err != nil {
+		fmt.Println("error")
+	}
 }
 
 func dbVote(db *bolt.DB, v voteStruct) (ballotStruct, error) {
